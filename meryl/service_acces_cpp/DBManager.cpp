@@ -4,18 +4,7 @@
 #include <cppconn/resultset.h>
 #include <iostream>
 
-//➡️ Inclus les dépendances nécessaires pour :
-
-//SQL avec MySQL Connector/C++ (cppconn/...)
-
-//Affichage des erreurs ou messages (iostream)
-
-
-
 DBManager::DBManager() : conn(nullptr) {}
-//➡️ Initialise le pointeur conn à nullptr. Cela évite des erreurs si la connexion n’a pas encore été établie.
-
-
 
 bool DBManager::connecter() {
     try {
@@ -30,7 +19,6 @@ bool DBManager::connecter() {
         return false;
     }
 }
-//➡️ Se connecte à la base de données. En cas d’erreur, affiche des infos utiles au débogage.
 
 int DBManager::verifierEmpreinte(const std::string& hash) {
     auto stmt = conn->prepareStatement("SELECT id FROM utilisateurs WHERE empreinte_biometrique = UNHEX(?)");
@@ -38,9 +26,6 @@ int DBManager::verifierEmpreinte(const std::string& hash) {
     auto res = stmt->executeQuery();
     return res->next() ? res->getInt("id") : -1;
 }
-//➡️ Cherche un utilisateur correspondant au hash d’empreinte biométrique (converti en binaire avec UNHEX()).
-//Retourne l’ID de l’utilisateur s’il existe.
-//Sinon retourne -1.
 
 int DBManager::enregistrerAcces(int idUtilisateur) {
     auto stmt = conn->prepareStatement(
@@ -53,10 +38,6 @@ int DBManager::enregistrerAcces(int idUtilisateur) {
     auto res = lastIdStmt->executeQuery();
     return res->next() ? res->getInt(1) : -1;
 }
-//➡️ Insère une ligne dans la table acces pour noter l’entrée d’un utilisateur.
-//entree_sortie = 'ENTREE'
-//La date est mise à l’instant actuel (NOW()).
-//Retourne l’ID de l’accès créé.
 
 int DBManager::verifierPositionCapteur(int position) {
     if (!conn) return -1;
@@ -77,9 +58,6 @@ int DBManager::verifierPositionCapteur(int position) {
 
     return -1;
 }
-//➡️ Vérifie si une position de capteur est déjà associée à un utilisateur.
-//Si oui : retourne son ID.
-//Sinon : retourne -1.
 
 void DBManager::cloturerAcces(int idAcces) {
     auto stmt = conn->prepareStatement(
@@ -88,8 +66,6 @@ void DBManager::cloturerAcces(int idAcces) {
     stmt->setInt(1, idAcces);
     stmt->execute();
 }
-//➡️ Met à jour la ligne d’accès en ajoutant le temps passé (en secondes).
-
 
 int DBManager::getDernierAccesOuvert(int idUtilisateur) {
     auto stmt = conn->prepareStatement(
@@ -111,12 +87,8 @@ int DBManager::getDernierAccesOuvert(int idUtilisateur) {
 
     return -1;
 }
-//➡️ Vérifie s’il existe un accès non terminé (sans durée) pour un utilisateur.
-//Si l’accès a été ouvert il y a moins de 2 minutes → retourne son ID.
-//Sinon, ou s’il n’y en a pas → retourne -1.
 
 
 DBManager::~DBManager() {
     if (conn) delete conn;
 }
-//➡️ Libère proprement la mémoire allouée à la connexion SQL.
